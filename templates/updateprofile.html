@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Password Change</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Please fill in the required inforamtion</h1>
+      <br>
+      <form action="" method="post">
+         <input type="text" placeholder="Username" name="username" value="{{
+          request.form.username }}"><br>
+         <input type="password" placeholder="Old Password" name="password" value="{{
+          request.form.password }}"><br>
+         <input type="password" placeholder="Password" name="password1" value="{{
+          request.form.password1 }}"><br>
+         <input type="password" placeholder="Confirm Password" name="password2" value="{{
+           request.form.password2 }}">
+         <input class="btn btn-default" type="submit" value="UPDATE">
+      </form>
+      {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}</p>
+      {% endif %}
+      {% for message in get_flashed_messages() %}
+          {{ message }}
+      {% endfor %}
+    </div>
+    <p>Click <a href="login">here</a> to login</p>
+  </body>
+</html>

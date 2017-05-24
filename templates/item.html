@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Flask Intro - store_post</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Please enter store name, item name, item price:</h1>
+      <br>
+      <form action="" method="post">
+         <input type="text" placeholder="Store" name="storename" minlength="4" value="{{
+          request.form.storename }}">
+          <br><br><br>
+         <input type="text" placeholder="Item" name="name" minlength="4" value="{{
+          request.form.name }}">
+          <br>
+         <input type=number step=0.01 placeholder="Price" name="price" value="{{
+          request.form.price }}">
+         <input class="btn btn-default" type="submit" value="create">
+      </form>
+      {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}</p>
+      {% endif %}
+      {% for message in get_flashed_messages() %}
+          {{ message }}
+      {% endfor %}
+    </div>
+  </body>
+</html>
