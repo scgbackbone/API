@@ -8,19 +8,8 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 
 
-# app.config.from_pyfile("file.cfg") should be in separate file
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config['SECRET_KEY'] = "voopicaci"
-app.config['USE_SESSION_FOR_NEXT'] = True
-app.config['MAIL_SERVER']='smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'virgovica@gmail.com'
-app.config['MAIL_PASSWORD'] = 'hard_to_guess'
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-
+app.config.from_pyfile("app.cfg")
 db = SQLAlchemy(app)
 flask_bcrypt = Bcrypt(app)
 mail = Mail(app)
@@ -63,9 +52,7 @@ def register():
             pw_hash = flask_bcrypt.generate_password_hash(password)
             user = User(request.form["username"], request.form["email"], pw_hash)
             token = s.dumps(request.form["email"], salt="email-confirm")
-            print(token)
             token = token + "@" + str(user.username)
-            print(token)
             link = url_for("confirmemail", token=token, _external=True)
             msg = Message(
                 subject="Confirmation Email",
@@ -93,7 +80,7 @@ def login():
         else:
             user = User.find_by_username(request.form["username"])
             if not user.verified:
-                return render_template("login.html", error="error - not verified")
+                return render_template("login.html", error="error - not verified"), 201
             candid_password = request.form["password"]
             if flask_bcrypt.check_password_hash(user.password, candid_password):
                 login_user(user, remember=True)
@@ -101,7 +88,7 @@ def login():
                     next_url = session["next"]
                     if is_safe_url(next_urls):
                         return redirect(next_url)
-                return "<h1>You're now logged in...</h1>"#redirect(url_for("updateprofile"))
+                return "<h1>You're now logged in...</h1>", 201#redirect(url_for("updateprofile"))
             error = "Invalid password"
     return render_template("login.html", error=error)
 
@@ -140,12 +127,13 @@ def email_confirmation():
         return '<form action="/emailconf" method="POST"><input name="email"><input type="submit"></form>'
     token = s.dumps(request.form["email"], salt="email-confirm")
     link = url_for("confirmemail", token=token, _external=True)
+    current_usr = load_user(str(current_user.id))
     msg = Message(
         subject="Confirmation Email",
         sender="virgovica@gmail.com",
         recipients=[request.form["email"]]
     )
-    msg.body = "Your confirmation link is {}".format(link)
+    msg.body = "Your confirmation link is {}".format(link + "@" + current_usr.username)
     mail.send(msg)
     return ("the email you entered is " + (request.form["email"]) + "  The token is:  " + token), 201
 
@@ -192,7 +180,7 @@ def logout():
 @login_required
 def home():
     x = load_user(str(current_user.id))
-    return "username: " + str(x.username) + "\nemail: " + str(x.email) + "\npassword: " + str(x.password) + "verified=" + str(x.verified)
+    return "username: " + str(x.username) + "\nemail: " + str(x.email) + "\npassword: " + str(x.password) + " verified=" + str(x.verified)
 
 
 @app.route("/store-post", methods=["GET", "POST"])

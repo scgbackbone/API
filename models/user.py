@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
     @classmethod
     def show_all_users(cls):
         def functional(some_object):
-            return {"username: ": some_object.username, "email: ": some_object.email, "verified: ": some_object.verified}
+            return {"username: ": some_object.username, "email: ": some_object.email, "verified: ": some_object.verified, "passwd": some_object.password}
 
         return list(map(functional, (i for i in cls.query.all())))
 
@@ -61,4 +61,5 @@ class User(UserMixin, db.Model):
         def delete_from_db(some_object):
             db.session.delete(some_object)
             db.session.commit()
-        return map(delete_from_db, (i for i in cls.query.all()))
+        list(map(delete_from_db, (i for i in cls.query.all())))
+        return "Done; Success..."

@@ -6,10 +6,10 @@
     <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
-    <div class="container">
+    <div align="justify" class="container">
       <h1>Please login</h1>
       <br>
-      <form action="" method="post">
+      <form align="justify" action="" method="post">
          <input type="text" placeholder="Username" name="username" minlength="4" value="{{
           request.form.username }}">
          <br>
@@ -24,7 +24,8 @@
       {% for message in get_flashed_messages() %}
           {{ message }}
       {% endfor %}
-    </div>
-    <p>Click <a href="register">here</a> to register</p>
+  
+      <p>Click <a href="register">here</a> to register</p>
+	</div>
   </body>
 </html>

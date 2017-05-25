@@ -6,7 +6,7 @@
     <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
-    <div class="container">
+    <div align="justify" class="container">
       <h1>Please register</h1>
       <br>
       <form action="" method="post">
@@ -24,7 +24,7 @@
       {% for message in get_flashed_messages() %}
           {{ message }}
       {% endfor %}
+      <p>Click <a href="login">here</a> to login</p>
     </div>
-    <p>Click <a href="login">here</a> to login</p>
   </body>
 </html>
