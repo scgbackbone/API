@@ -9,7 +9,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignat
 
 
 app = Flask(__name__)
-app.config.from_pyfile("app.cfg")
+app.config.from_pyfile("config.py")
 db = SQLAlchemy(app)
 flask_bcrypt = Bcrypt(app)
 mail = Mail(app)
@@ -73,6 +73,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+	name = session.get("name")
     error = None
     if request.method == "POST":
         if not User.find_by_username(request.form["username"]):
@@ -90,7 +91,7 @@ def login():
                         return redirect(next_url)
                 return "<h1>You're now logged in...</h1>", 201#redirect(url_for("updateprofile"))
             error = "Invalid password"
-    return render_template("login.html", error=error)
+    return render_template("login.html", error=error, name=name)
 
 @app.route("/changepasswd", methods=["GET", "POST"])
 @fresh_login_required
@@ -264,3 +265,4 @@ def items():
 if __name__ == "__main__":
     db.create_all()
     app.run(port=5000, debug=True)
+#app = app.wsgi_app
