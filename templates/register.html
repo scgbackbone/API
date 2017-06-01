@@ -9,20 +9,28 @@
     <div align="justify" class="container">
       <h1>Please register</h1>
       <br>
-      <form action="" method="post">
-         <input type="text" placeholder="Username" name="username" value="{{
-          request.form.username }}"<br><br>
-         <input type="text" placeholder="Email" name="email" value="{{
-          request.form.email }}"><br><br>
-         <input type="password" placeholder="Password" name="password" value="{{
-          request.form.password }}">
-         <input class="btn btn-default" type="submit" value="register">
-      </form>
+      <form action="{{ url_for('register') }}" method="POST">
+         {{ form.csrf_token }}
+         {{ form.username(placeholder="username") }}<br>
+         {{ form.email(placeholder="email") }}<br><br>
+         {{ form.password(placeholder="password") }}<br>
+         {{ form.confirm_password(placeholder="confirm password") }}
+         {{ form.submit }}
+      </form><br>
       {% if error %}
-        <p class="error"><strong>Error:</strong> {{ error }}</p>
+        <p class="error" style="color:red"><strong>Error:</strong> {{ error }}</p>
       {% endif %}
+      {% for error in form.username.errors %}
+            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+      {% endfor %}
+      {% for error in form.email.errors %}
+            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+      {% endfor %}
+      {% for error in form.password.errors %}
+            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+      {% endfor %}
       {% for message in get_flashed_messages() %}
-          {{ message }}
+            <p class="flash" style="color:green"><strong>>>></strong>{{ message }}</p>
       {% endfor %}
       <p>Click <a href="login">here</a> to login</p>
     </div>

@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 from urllib.parse import urlparse, urljoin
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+from forms import RegisterForm
 
 
 app = Flask(__name__)
@@ -41,57 +42,95 @@ def is_safe_url(target):
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    error = None
-    if request.method == "POST":
-        if User.find_by_username(request.form["username"]):
-            error = "User with this username already exists"
-        elif User.find_by_email(request.form["email"]):
-            error = "User with this email already exists"
-        else:
-            password = request.form["password"]
-            pw_hash = flask_bcrypt.generate_password_hash(password)
-            user = User(request.form["username"], request.form["email"], pw_hash)
-            token = s.dumps(request.form["email"], salt="email-confirm")
-            token = token + "@" + str(user.username)
-            link = url_for("confirmemail", token=token, _external=True)
-            msg = Message(
-                subject="Confirmation Email",
-                sender="virgovica@gmail.com",
-                recipients=[request.form["email"]]
-            )
-            msg.body = "Your confirmation link is {}".format(link)
-            mail.send(msg)
-            try:
-                user.save_to_db()
-            except:
-                flash("internal servererrrrrrrrrrrrrrrrror")
-            flash("user created successfully, check provided mailbox where you find confirmation link\nlast registration step, I promise..."\
-                    + "\nclick on the confirmation link and you'll be redirected to login page...")
-            return render_template("register.html")
-    return render_template("register.html", error=error)
+	error = None
+	form = RegisterForm()
+	if form.validate_on_submit():
+		if User.find_by_username(form.username.data):
+			error = "User with such username already exists."
+		elif User.find_by_email(form.email.data):
+			error = "This email is already used with different user."
+		elif form.password.data != form.confirm_password.data:
+			error = "Passwords don't match."
+		else:
+			pw_hash = flask_bcrypt.generate_password_hash(form.password.data)
+			user = User(form.username.data, form.password.data, pw_hash)
+			token = s.dumps(form.email.data, salt="email-confirm")
+			token = token + "@" + str(user.username)
+			link = url_for("confirmemail", token=token, _external=True)
+			msg = Message(
+				subject="Confirmation Email",
+				sender="virgovica@gmail.com",
+				recipients=[form.email.data]
+			)
+			msg.body = "Your confirmation link is {}".format(link)
+			mail.send(msg)
+			try:
+				user.save_to_db()
+			except:
+				error = "Oops, internal server error"
+			flash("User created successfully, check provided mailbox where you will find confirmation link."\
+					+ "\n click on the confirmation link and you'll be redirected to login page.")
+		form.username.data = ""
+		form.email.data = ""
+	return render_template("register.html", form=form, error=error)
+
+############################################################################
+## obsolete register method; if to use, only with register1.html template ##
+############################################################################
+
+#@app.route("/register", methods=["GET", "POST"])
+#def register():
+#    error = None
+#    if request.method == "POST":
+#        if User.find_by_username(request.form["username"]):
+#            error = "User with this username already exists"
+#        elif User.find_by_email(request.form["email"]):
+#            error = "User with this email already exists"
+#        else:
+#            password = request.form["password"]
+#            pw_hash = flask_bcrypt.generate_password_hash(password)
+#            user = User(request.form["username"], request.form["email"], pw_hash)
+#            token = s.dumps(request.form["email"], salt="email-confirm")
+#            token = token + "@" + str(user.username)
+#            link = url_for("confirmemail", token=token, _external=True)
+#            msg = Message(
+#                subject="Confirmation Email",
+#                sender="virgovica@gmail.com",
+#                recipients=[request.form["email"]]
+#            )
+#            msg.body = "Your confirmation link is {}".format(link)
+#            mail.send(msg)
+#            try:
+#                user.save_to_db()
+#            except:
+#                flash("internal servererrrrrrrrrrrrrrrrror")
+#            flash("user created successfully, check provided mailbox where you find confirmation link\nlast registration step, I promise..."\
+#                    + "\nclick on the confirmation link and you'll be redirected to login page...")
+#            return render_template("register1.html")
+#    return render_template("register1.html", error=error)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
 	name = session.get("name")
-    error = None
-    if request.method == "POST":
-        if not User.find_by_username(request.form["username"]):
-            error = "Invalid username. Try again"
-        else:
-            user = User.find_by_username(request.form["username"])
-            if not user.verified:
-                return render_template("login.html", error="error - not verified"), 201
-            candid_password = request.form["password"]
-            if flask_bcrypt.check_password_hash(user.password, candid_password):
-                login_user(user, remember=True)
-                if "next" in session:
-                    next_url = session["next"]
-                    if is_safe_url(next_urls):
-                        return redirect(next_url)
-                return "<h1>You're now logged in...</h1>", 201#redirect(url_for("updateprofile"))
-            error = "Invalid password"
-    return render_template("login.html", error=error, name=name)
+	error = None
+	if request.method == "POST":
+		if not User.find_by_username(request.form["username"]):
+			error = "Invalid username. Try again"
+		else:
+			user = User.find_by_username(request.form["username"])
+			if not user.verified:
+				return render_template("login.html", error="ERROR not verified"), 201
+			candid_password = request.form["password"]
+			if flask_bcrypt.check_password_hash(user.password, candid_password):
+				login_user(user, remember=True)
+				if "next" in session:
+					next_url = session["next"]
+					if is_safe_url(next_url):  # I did have next_urls here before - why?
+						return redirect(next_url)
+				return "<h1>You're now logged in</h1>"
+			error = "Invalid password"
+	return render_template("login.html", error=error, name=name)
 
 @app.route("/changepasswd", methods=["GET", "POST"])
 @fresh_login_required
