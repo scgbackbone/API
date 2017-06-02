@@ -1,34 +1,26 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required, fresh_login_required
+import os
+from flask import render_template, redirect, url_for, request, session, flash
+from flask_login import login_user, logout_user, current_user, login_required, fresh_login_required
 #from werkzeug.security import safe_str_cmp
-from flask_bcrypt import Bcrypt
 from urllib.parse import urlparse, urljoin
-from flask_mail import Mail, Message
+from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
-from forms import RegisterForm
+from .forms import RegisterForm
+from ..models.user import User
+from ..models.items import Item
+from ..models.stores import Store
+from . import main
+from .. import login_manager, flask_bcrypt, mail
 
+s = URLSafeTimedSerializer(os.environ.get("SECRET_KEY"))
 
-app = Flask(__name__)
-app.config.from_pyfile("config.py")
-db = SQLAlchemy(app)
-flask_bcrypt = Bcrypt(app)
-mail = Mail(app)
-s = URLSafeTimedSerializer(app.config["SECRET_KEY"])
-
-login_manager = LoginManager()
-login_manager.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message = "In order to access this endpoint - log in"
 login_manager.refresh_view = "login"
 login_manager.needs_refresh_message = "Please, perform fresh login. You're accessing route with increased protection."
 
-from models.user import *
-from models.stores import *
-from models.items import *
-
 # return whole object from database
-@app.route("/user-loader")
+@main.route("/user-loader")
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -40,7 +32,7 @@ def is_safe_url(target):
             ref_url.netloc == test_url.netloc
 
 
-@app.route("/register", methods=["GET", "POST"])
+@main.route("/register", methods=["GET", "POST"])
 def register():
 	error = None
 	form = RegisterForm()
@@ -56,7 +48,7 @@ def register():
 			user = User(form.username.data, form.password.data, pw_hash)
 			token = s.dumps(form.email.data, salt="email-confirm")
 			token = token + "@" + str(user.username)
-			link = url_for("confirmemail", token=token, _external=True)
+			link = url_for("main.confirmemail", token=token, _external=True)
 			msg = Message(
 				subject="Confirmation Email",
 				sender="virgovica@gmail.com",
@@ -78,7 +70,7 @@ def register():
 ## obsolete register method; if to use, only with register1.html template ##
 ############################################################################
 
-#@app.route("/register", methods=["GET", "POST"])
+#@main.route("/register", methods=["GET", "POST"])
 #def register():
 #    error = None
 #    if request.method == "POST":
@@ -92,7 +84,7 @@ def register():
 #            user = User(request.form["username"], request.form["email"], pw_hash)
 #            token = s.dumps(request.form["email"], salt="email-confirm")
 #            token = token + "@" + str(user.username)
-#            link = url_for("confirmemail", token=token, _external=True)
+#            link = url_for("main.confirmemail", token=token, _external=True)
 #            msg = Message(
 #                subject="Confirmation Email",
 #                sender="virgovica@gmail.com",
@@ -110,7 +102,7 @@ def register():
 #    return render_template("register1.html", error=error)
 
 
-@app.route("/login", methods=["GET", "POST"])
+@main.route("/login", methods=["GET", "POST"])
 def login():
 	name = session.get("name")
 	error = None
@@ -132,7 +124,7 @@ def login():
 			error = "Invalid password"
 	return render_template("login.html", error=error, name=name)
 
-@app.route("/changepasswd", methods=["GET", "POST"])
+@main.route("/changepasswd", methods=["GET", "POST"])
 @fresh_login_required
 def update_profile():
     error = None
@@ -161,12 +153,12 @@ def update_profile():
         return render_template("updateprofile.html", error=error)
     return render_template("updateprofile.html", error=error), 200
 
-@app.route("/emailconf", methods=["GET", "POST"])
+@main.route("/emailconf", methods=["GET", "POST"])
 def email_confirmation():
     if request.method == "GET":
         return '<form action="/emailconf" method="POST"><input name="email"><input type="submit"></form>'
     token = s.dumps(request.form["email"], salt="email-confirm")
-    link = url_for("confirmemail", token=token, _external=True)
+    link = url_for("main.confirmemail", token=token, _external=True)
     current_usr = load_user(str(current_user.id))
     msg = Message(
         subject="Confirmation Email",
@@ -177,7 +169,7 @@ def email_confirmation():
     mail.send(msg)
     return ("the email you entered is " + (request.form["email"]) + "  The token is:  " + token), 201
 
-@app.route("/confirmemail/<token>")
+@main.route("/confirmemail/<token>")
 def confirmemail(token):
     token, username = token.split("@")
     print(token)
@@ -197,33 +189,33 @@ def confirmemail(token):
     except Exception as e:
         print(e)
         return "<h1>Internal server error</h1>"
-    return redirect(url_for("login"))
+    return redirect(url_for("main.login"))
 
-@app.route("/")
+@main.route("/")
 def index():
     user = User.query.filter_by(username="andrej").first()
     if user != None:
         login_user(user)
-        return redirect(url_for("home"))
+        return redirect(url_for("main.home"))
     else:
-        return redirect(url_for("login"))
+        return redirect(url_for("main.login"))
 
 
-@app.route("/logout", methods=["GET", "POST"])
+@main.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
     logout_user()
     return "you're now logged out"
 
 
-@app.route("/home")
+@main.route("/home")
 @login_required
 def home():
     x = load_user(str(current_user.id))
     return "username: " + str(x.username) + "\nemail: " + str(x.email) + "\npassword: " + str(x.password) + " verified=" + str(x.verified)
 
 
-@app.route("/store-post", methods=["GET", "POST"])
+@main.route("/store-post", methods=["GET", "POST"])
 @login_required
 def store_post():
     error = None
@@ -240,7 +232,7 @@ def store_post():
     return render_template("store.html", error=error)
 
 
-@app.route("/store-update", methods=["GET", "POST"])
+@main.route("/store-update", methods=["GET", "POST"])
 @login_required
 def store_post_update():
     error = None
@@ -264,7 +256,7 @@ def store_post_update():
     return render_template("store-update.html", error=error)
 
 
-@app.route("/item-post", methods=["GET", "POST"])
+@main.route("/item-post", methods=["GET", "POST"])
 @login_required
 def item_post():
     error = None
@@ -288,7 +280,7 @@ def item_post():
     return render_template("item.html", error=error)
 
 
-@app.route("/items", methods=["GET", "POST"])
+@main.route("/items", methods=["GET", "POST"])
 @login_required
 def items():
     items = Item.query.all()
@@ -301,7 +293,7 @@ def items():
     return render_template("index.html", items=items)
 
 
-if __name__ == "__main__":
-    db.create_all()
-    app.run(port=5000, debug=True)
+#if __name__ == "__main__":
+#    db.create_all()
+#    app.run(port=5000, debug=True)
 #app = app.wsgi_app

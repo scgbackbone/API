@@ -9,7 +9,7 @@
     <div align="justify" class="container">
       <h1>Please register</h1>
       <br>
-      <form action="{{ url_for('register') }}" method="POST">
+      <form action="{{ url_for('main.register') }}" method="POST">
          {{ form.csrf_token }}
          {{ form.username(placeholder="username") }}<br>
          {{ form.email(placeholder="email") }}<br><br>
