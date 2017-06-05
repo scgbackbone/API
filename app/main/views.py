@@ -45,7 +45,7 @@ def register():
 			error = "Passwords don't match."
 		else:
 			pw_hash = flask_bcrypt.generate_password_hash(form.password.data)
-			user = User(form.username.data, form.password.data, pw_hash)
+			user = User(username=form.username.data, email=form.email.data, password=pw_hash)
 			token = s.dumps(form.email.data, salt="email-confirm")
 			token = token + "@" + str(user.username)
 			link = url_for("main.confirmemail", token=token, _external=True)
