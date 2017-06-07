@@ -3,32 +3,36 @@
   <head>
     <title>Flask Intro - register</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="../static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
     <div align="justify" class="container">
       <h1>Please register</h1>
       <br>
-      <form action="{{ url_for('main.register') }}" method="POST">
+      <form action="{{ url_for('auth.register') }}" method="POST">
          {{ form.csrf_token }}
          {{ form.username(placeholder="username") }}<br>
          {{ form.email(placeholder="email") }}<br><br>
          {{ form.password(placeholder="password") }}<br>
-         {{ form.confirm_password(placeholder="confirm password") }}
-         {{ form.submit }}
+         {{ form.confirm_password(placeholder="confirm password") }}<br><br>
+         {{ form.submit() }}
       </form><br>
       {% if error %}
-        <p class="error" style="color:red"><strong>Error:</strong> {{ error }}</p>
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
       {% endif %}
       {% for error in form.username.errors %}
-            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+            <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
       {% endfor %}
       {% for error in form.email.errors %}
-            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+            <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
       {% endfor %}
       {% for error in form.password.errors %}
-            <p class="error" style="color:red"><strong>Error:</strong>{{ error }}</p>
+            <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
       {% endfor %}
+	  {% for error in form.confirm_password.errors %}
+            <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
+      {% endfor %}
+
       {% for message in get_flashed_messages() %}
             <p class="flash" style="color:green"><strong>>>></strong>{{ message }}</p>
       {% endfor %}

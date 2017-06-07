@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Password Change</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../static/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <div align="justify" class="container">
+      <h1>Please fill in the required inforamtion</h1>
+      <br>
+      <form action="{{ url_for('auth.update_profile') }}" method="POST">
+		{{ form.csrf_token }}
+		{{ form.username(placeholder="username") }}<br>
+		{{ form.old_password(placeholder="current password") }}<br><br>
+		{{ form.new_password(placeholder="new password") }}<br>
+		{{ form.confirm_password(placeholder="confirm password") }}<br>
+		{{ form.submit() }}
+      </form>
+      {% if error %}
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
+      {% endif %}
+	  {% for error in form.username.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
+	  {% endfor %}
+	  {% for error in form.old_password.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
+	  {% endfor %}
+	  {% for error in form.new_password.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
+	  {% endfor %}
+	  {% for error in form.confirm_password.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong> {{ error }}</p>
+	  {% endfor %}
+      {% for message in get_flashed_messages() %}
+        <p class="flash" style="color:green"><strong>>>></strong>{{ message }}</p>
+      {% endfor %}
+      <p>Click <a href="login">here</a> to login</p>
+    </div>
+  </body>
+</html>

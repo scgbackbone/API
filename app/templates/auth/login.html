@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Flask Intro - login page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="../static/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <div align="justify" class="container">
+      <h1>Please login</h1>
+	  {% if name %}
+	  <h4>{{ name }}, it seem that you're already logged in</h4>
+	  {% endif %}
+      <br>
+      <form action="{{ url_for('auth.login') }}" method="POST">
+	  	{{ form.csrf_token }}
+		{{ form.username(placeholder="username") }}<br><br>
+		{{ form.password(placeholder="password") }}<br>
+		{{ form.remember_me }}	
+		{{ form.remember_me.label }}<br>
+		{{ form.submit() }} 
+      </form><br>
+      {% if error %}
+        <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
+      {% endif %}
+	  {% for error in form.username.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
+	  {% endfor %}
+	  {% for error in form.password.errors %}	
+        <p class="error" style="color:red"><strong>Error >>></strong>{{ error }}</p>
+	  {% endfor %}
+      {% for message in get_flashed_messages() %}
+         <p class="flash" style="color:green"><strong>>>></strong>{{ message }}</p> 
+      {% endfor %}
+  
+      <p>Click <a href="register">here</a> to register</p>
+	</div>
+  </body>
+</html>

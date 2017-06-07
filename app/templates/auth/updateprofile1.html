@@ -3,13 +3,13 @@
   <head>
     <title>Password Change</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="../static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
   <body>
     <div align="justify" class="container">
       <h1>Please fill in the required inforamtion</h1>
       <br>
-      <form action="" method="post">
+      <form action="{{ url_for('auth.changepasswd') }}" method="POST">
          <input type="text" placeholder="Username" name="username" value="{{
           request.form.username }}"><br><br>
          <input type="password" placeholder="Old Password" name="password" value="{{
