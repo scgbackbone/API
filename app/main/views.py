@@ -40,8 +40,11 @@ def index():
 @main.route("/home")
 @login_required
 def home():
-    x = load_user(str(current_user.id))
-    return "username: " + str(x.username) + "\nemail: " + str(x.email) + "\npassword: " + str(x.password_hash) + " verified=" + str(x.verified)
+	x = load_user(str(current_user.id))
+	y = request.headers
+	z = request.args
+	qq = session
+	return "username: " + str(x.username) + "\nemail: " + str(x.email) + "\npassword: " + str(x.password_hash) + " verified=" + str(x.verified) + "      " + str(y) + "           " + str(["{}:{}".format(i,j) for i,j in z]) + "  " + str(qq)
 
 
 @main.route("/store-post", methods=["GET", "POST"])

@@ -30,14 +30,14 @@ def register():
 	error = None
 	form = RegisterForm()
 	if form.validate_on_submit():
-		status_code = 201
-		if User.find_by_username(form.username.data):
-			error = "User with such username already exists."
-			form.username.data = ""
-		elif User.find_by_email(form.email.data):
-			error = "This email is already used with different user."
-			form.email.data = ""
-		else:
+			status_code = 201
+		#if User.find_by_username(form.username.data):
+		#	error = "User with such username already exists."
+		#	form.username.data = ""
+		#elif User.find_by_email(form.email.data):
+		#	error = "This email is already used with different user."
+		#	form.email.data = ""
+		#else:
 			user = User(username=form.username.data, email=form.email.data, password=form.password.data)
 			token = s.dumps(form.email.data, salt="email-confirm")
 			token = token + "@" + str(user.username)
@@ -115,7 +115,7 @@ def confirmemail(token):
     #print(token)
     #print(username)
     try:
-        email = s.loads(token, salt="email-confirm", max_age=600)
+        email = s.loads(token, salt="email-confirm", max_age=1800)
     except SignatureExpired as e:
         print(e)
         return "<h1>Token is expired</h1>"

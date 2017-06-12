@@ -1,20 +1,28 @@
-from app import db, flask_bcrypt
-from flask_login import UserMixin
+from app import db, flask_bcrypt, login_manager
+from flask_login import UserMixin, AnonymousUserMixin
+from roles import Role, Permission
 
 class User(UserMixin, db.Model):
-	__tablename__ = "users"
+	__tablename__ = 'users'
 
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(30), unique=True)
 	email = db.Column(db.String(100))
 	password_hash = db.Column(db.String(128))
-	verified = db.Column(db.Boolean)
+	role_id = db.Column(db.Integer, db.ForeignKey('roles.name'))
+	verified = db.Column(db.Boolean, default=False)
 
-	def __init__(self, username, email, password, verified=False):
-		self.username = username
-		self.email = email
-		self.password = password
-		self.verified = verified
+	def __init__(self, **kwargs):
+		super(User, self).__init__(**kwargs)
+		if self.role == None:
+			if self.email == current_app.config["MAIL_USERNAME"]:
+				self.role = Role.query.filter_by(permissions=0xff).first()
+			else:
+				self.role = Role.query.filter_by(default=True).first()
+
+
+	def __repr__(self):
+		return "<User %r>" % self.username
 
 	def save_to_db(self):
 		db.session.add(self)
@@ -34,6 +42,12 @@ class User(UserMixin, db.Model):
 
 	def verify_password(self, passwd):
 		return flask_bcrypt.check_password_hash(self.password_hash, passwd)
+
+	def can(self, permission):
+		return self.role is not None and (self.role.permissions & permissions) == permissions
+
+	def is_admin(self):
+		return self.can(Permission.ADMINISTER)
 
 	@classmethod                                                 # withou classmethod (self)
 	def find_by_username(cls, username):
@@ -74,3 +88,13 @@ class User(UserMixin, db.Model):
 			db.session.commit()
 		list(map(delete_from_db, (i for i in cls.query.all())))
 		return "Done; Success..."
+
+
+class AnonymousUser(AnonymousUserMixin):
+	def can(self, permissions):
+		return False
+
+	def is_admin(self):
+		return False
+
+login_manager.anonymous_user = AnonymousUser
