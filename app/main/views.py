@@ -8,6 +8,8 @@ from ..models.stores import Store
 from . import main
 from .. import login_manager, flask_bcrypt, mail
 from ..auth.auth_views import load_user
+from ..decorators import admin_required, permission_required, permission_required1, Permission_required
+from app.models.roles import Permission
 
 
 @main.route("/emailconf", methods=["GET", "POST"])
@@ -36,6 +38,15 @@ def index():
     else:
         return redirect(url_for("auth.login"))
 
+@main.route("/admin")
+@admin_required
+def admins_only():
+	return "<h1>Administrator permissions got you here, fella.</h1>"
+
+@main.route("/moderator")
+@Permission_required(Permission.MODERATE_COMMENTS)
+def moderators_only():
+	return "<h1>For comment moderators.</h1>"
 
 @main.route("/home")
 @login_required

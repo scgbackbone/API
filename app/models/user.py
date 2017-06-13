@@ -1,6 +1,6 @@
 from app import db, flask_bcrypt, login_manager
 from flask_login import UserMixin, AnonymousUserMixin
-from roles import Role, Permission
+from .roles import Role, Permission
 
 class User(UserMixin, db.Model):
 	__tablename__ = 'users'
@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
 	def verify_password(self, passwd):
 		return flask_bcrypt.check_password_hash(self.password_hash, passwd)
 
-	def can(self, permission):
+	def can(self, permissions):
 		return self.role is not None and (self.role.permissions & permissions) == permissions
 
 	def is_admin(self):
