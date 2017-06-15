@@ -15,6 +15,7 @@ def permission_required(permission):
 
 def permission_required1(permission):
 	def wrap(function):
+		@wraps(function)
 		def wrapped_function(*args, **kwargs):
 			if not current_user.can(permission):
 				abort(403)
@@ -29,6 +30,7 @@ class Permission_required(object):
 		self.permission = permission
 
 	def __call__(self, function):
+		@wraps(function)
 		def wrapped_func(*args, **kwargs):
 			if not current_user.can(self.permission):
 				abort(403)
@@ -38,3 +40,5 @@ class Permission_required(object):
 
 def admin_required(f):
 	return permission_required(Permission.ADMINISTER)(f)
+
+
